@@ -450,7 +450,9 @@ class buildpanel(tk.Frame):
         if (self.jf.get_nm_checked()==1):
           CCDplot.a.plot(self.jf.get_nm_scale(),config.pltData16,linewidth=0.6)
           CCDplot.a.axis([self.jf.nm_left,self.jf.nm_right,0,up])
-          CCDplot.a.set_xlim([self.jf.nm_left+self.jf.baseline_start*self.jf.nm_step, self.jf.nm_left+self.jf.baseline_end*self.jf.nm_step])
+          #CCDplot.a.set_xlim([self.jf.nm_left+self.jf.baseline_start*self.jf.nm_step, self.jf.nm_left+self.jf.baseline_end*self.jf.nm_step])
+
+          CCDplot.a.set_xlim(self.jf.nmData16[self.jf.baseline_start],self.jf.nmData16[self.jf.baseline_end])
           CCDplot.a.set_xlabel(" [nm] ")
         else:
           CCDplot.a.plot(config.pltData16,linewidth=0.6)  

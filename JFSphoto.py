@@ -49,6 +49,7 @@ from tkinter import ttk
 import CCDpanelsetup as panel
 from sklearn.metrics import r2_score
 from JFShelp import *
+import os
 ####################################### object
 class Messurement(object):
     ### nr -> na
@@ -126,6 +127,9 @@ class Jfsphoto (object):
         self.tnm_left = tk.StringVar()
         self.tnm_right = tk.StringVar()
         self.tnm_step = tk.StringVar()
+        ########## calibarray
+        self.calib_array_file = ''
+        ##self.tnm_step = tk.StringVar()
         self.nmData16 = np.zeros(3694, np.uint16)
         ########## nm scale checkButton default nm-scale is off
         self.nm_checked = tk.IntVar()
@@ -161,57 +165,91 @@ class Jfsphoto (object):
         
     def do_calibrate(self):
         win = tk.Toplevel()
-        win.geometry("450x200+200+200")
+        win.geometry("500x300+200+200")
         #center_window([500,300],None)
-        self.lab1 = tk.Label(win, text='Please enter filenames and nm of the peaks').grid(row=0,column=0,columnspan=6)
+        #self.lab1 = tk.Label(win, text='Please enter filenames and nm of the peaks').grid(row=0,column=0,columnspan=6)
+        lf1 = tk.LabelFrame(win,text='Lasercalibration: Please enter filenames and nm of the peaks')
+        lf1.grid(column=0,row=0,columnspan=8,padx=10,sticky='w')
         ########## first peak
         self.tnm = tk.StringVar()
         self.tnm.set(str(self.nm))
         self.tnmi = tk.StringVar()
         self.tnmi.set(str(self.nmi))
-        self.lab2 = tk.Label(win,text='first Peak nm').grid(row=1,column=0,sticky='w')
-        self.en1 = tk.Entry(win,textvariable=self.tnm, width= 10).grid(row=1,column=1)
-        self.bt1 = tk.Button(win,text="select File",command=lambda: self.openfile(1)).grid(row=1,column=2)
-        self.lnm = tk.Label(win,textvariable =self.tnm).grid(row=1,column=3)
-        self.lnm = tk.Label(win,text =" nm by index ").grid(row=1,column=4)
-        self.lmi = tk.Label(win,textvariable=self.tnmi).grid(row=1,column=5)
+        self.lab2 = tk.Label(lf1,text='first Peak nm').grid(row=1,column=0,sticky='w')
+        self.en1 = tk.Entry(lf1,textvariable=self.tnm, width= 10).grid(row=1,column=1)
+        self.bt1 = tk.Button(lf1,text="select File",command=lambda: self.openfile(1)).grid(row=1,column=2)
+        self.lnm = tk.Label(lf1,textvariable =self.tnm).grid(row=1,column=3)
+        self.lnm = tk.Label(lf1,text =" nm by index ").grid(row=1,column=4)
+        self.lmi = tk.Label(lf1,textvariable=self.tnmi).grid(row=1,column=5)
         ########## second peak
         self.tnm2 = tk.StringVar()
         self.tnm2.set(str(self.nm2))
         self.tnm2i = tk.StringVar()
         self.tnm2i.set(str(self.nm2i))
-        self.lab3 = tk.Label(win,text='second Peak nm').grid(row=2,column=0,sticky='w')
-        self.en2 = tk.Entry(win,textvariable=self.tnm2, width= 10).grid(row=2,column=1)
-        self.bt2 = tk.Button(win,text="select File",command=lambda: self.openfile(2)).grid(row=2,column=2)
-        self.lnm2 = tk.Label(win,textvariable =self.tnm2).grid(row=2,column=3)
-        self.lnm2 = tk.Label(win,text =" nm by index ").grid(row=2,column=4)
-        self.lm2i = tk.Label(win,textvariable=self.tnm2i).grid(row=2,column=5)
+        self.lab3 = tk.Label(lf1,text='second Peak nm').grid(row=2,column=0,sticky='w')
+        self.en2 = tk.Entry(lf1,textvariable=self.tnm2, width= 10).grid(row=2,column=1)
+        self.bt2 = tk.Button(lf1,text="select File",command=lambda: self.openfile(2)).grid(row=2,column=2)
+        self.lnm2 = tk.Label(lf1,textvariable =self.tnm2).grid(row=2,column=3)
+        self.lnm2 = tk.Label(lf1,text =" nm by index ").grid(row=2,column=4)
+        self.lm2i = tk.Label(lf1,textvariable=self.tnm2i).grid(row=2,column=5)
         ########### calibration    
         self.tnm_left.set(str(self.nm_left))
         self.tnm_right.set(str(self.nm_right))
         self.tnm_step.set(str(self.nm_step))
-        self.lab4 = tk.Label(win,text="left border [nm]").grid(row=3,column=0,sticky='w')
-        self.lab5 = tk.Label(win,textvariable=self.tnm_left).grid(row=3,column=1)
-        self.lab6 = tk.Label(win,text="right border [nm]").grid(row=3,column=2)
-        self.lab7 = tk.Label(win,textvariable=self.tnm_right).grid(row=3,column=3)
-        self.lab8 = tk.Label(win,text="[nm]/point").grid(row=3,column=4)
-        self.lab9 = tk.Label(win,textvariable=self.tnm_step).grid(row=3,column=5)
-        self.bt3  = tk.Button(win,text="Calibrate",command=self.calibrate,state=tk.DISABLED,padx=10)
+        self.lab4 = tk.Label(lf1,text="left border [nm]").grid(row=3,column=0,sticky='w')
+        self.lab5 = tk.Label(lf1,textvariable=self.tnm_left).grid(row=3,column=1)
+        self.lab6 = tk.Label(lf1,text="right border [nm]").grid(row=3,column=2)
+        self.lab7 = tk.Label(lf1,textvariable=self.tnm_right).grid(row=3,column=3)
+        self.lab8 = tk.Label(lf1,text="[nm]/point").grid(row=3,column=4)
+        self.lab9 = tk.Label(lf1,textvariable=self.tnm_step).grid(row=3,column=5)
+        self.bt3  = tk.Button(lf1,text="Calibrate",command=self.calibrate,state=tk.DISABLED,padx=10)
         self.bt3.grid(row=4,column=0,sticky='w')
+        self.bt4 = tk.Button(lf1,text="Save Calibarray",command=self.save_calib_array,state=tk.DISABLED,padx=10)
+        self.bt4.grid(row=4,column=1,sticky='w')
+        ############# calibration new
+        lf2 = tk.LabelFrame(win,text='Manage Calibrationfile')
+        lf2.grid(column=0,row=1,columnspan=8,padx=10,pady=5,sticky='w')
+        self.fcalib = tk.StringVar()
+        self.fcalib.set(self.calib_array_file)
+        self.bt5 = tk.Button(lf2,text="Load Calibarray",command=self.load_calib_array,padx=10)
+        self.bt5.grid(row=0,column=0,sticky='w')
+        self.bt6 = tk.Button(lf2,text="Show Calibarray",command=self.show_calib_array,padx=10)
+        self.bt6.grid(row=0,column=1,sticky='w')
+        self.lab10 = tk.Label(lf2,textvariable=self.fcalib)
+        self.lab10.grid(row=0,column=2,columnspan=3,padx=10,sticky='w')
         ############ limit for the baseline the baseline starts  and ends at a higher intensisity depending on
         # the spectrum of the light source
-        self.lab10 = tk.Label(win,text="threshold for the baseline").grid(row=5,column=0,columnspan=2, sticky="w")
-        self.en3 = tk.Entry(win,textvariable=self.baseline_limit, width= 10).grid(row=5,column=2)
+        lf3 = tk.LabelFrame(win,text='Baseline stuff')
+        lf3.grid(column=0,row=2,columnspan=8,padx=10,pady=5,sticky='w')
+        self.lab11 = tk.Label(lf3,text="threshold for the baseline").grid(row=0,column=0,columnspan=2, sticky="w")
+        self.en3 = tk.Entry(lf3,textvariable=self.baseline_limit, width= 10)
+        self.en3.grid(row=0,column=2,padx=10,sticky='w')
         ############ Save Load config
-        self.bt4 = tk.Button(win,text="Load Config",command=self.conf_read,padx=10).grid(row=6,column=0,sticky='w')
-        self.bt5 = tk.Button(win,text="Save Config",command=self.conf_write,padx=10).grid(row=6,column=1,sticky='w')
+        lf4 = tk.LabelFrame(win,text='Dont forget')
+        lf4.grid(column=0,row=3,columnspan=8,padx=10,pady=5,sticky='w')
+
+        self.bt7 = tk.Button(lf4,text="Load Config",command=self.conf_read,padx=10).grid(row=0,column=0,sticky='w')
+        self.bt8 = tk.Button(lf4,text="Save Config",command=self.conf_write,padx=10).grid(row=0,column=1,sticky='w')
         ############ Help
-        self.bt5 = tk.Button(win,text="Help me",command=lambda roots = win ,helpfor=0: jfshelpme(roots,helpfor),padx=10).grid(row=7,column=0,sticky='w')
+        self.bt9 = tk.Button(lf4,text="Help me",command=lambda roots = win ,helpfor=0: jfshelpme(roots,helpfor),padx=10).grid(row=0,column=2,sticky='w')
 
         ########### dialog modal
         win.focus_set()
         win.grab_set()
         win.wait_window()
+
+    def show_calib_array(self):
+        win1 = tk.Toplevel()
+        win1.geometry("560x280+200+200")
+        fig = plt.Figure(figsize=(4,2),dpi=140)
+        plt.rcParams.update({'font.size': 5})
+        ax1 = fig.add_subplot(111)
+        canvas = FigureCanvasTkAgg(fig, master = win1 )
+        canvas.get_tk_widget().grid(column=1,row=0,sticky='nesw')      
+        ax1.plot(self.df['nmscale'], linewidth=0.6)
+        win1.focus_set()
+        win1.grab_set()
+        win1.wait_window()
 
     def do_msg(self,txt):
         self.mroot = tk.Tk()
@@ -277,6 +315,7 @@ class Jfsphoto (object):
         self.nm2i = int(self.tnm2i.get())
         if ((self.nm > 0) & (self.nmi > 0) & (self.nm2 > 0) & (self.nm2i > 0)):
             self.bt3.config(state = tk.NORMAL)
+            
 
         
     def calibrate(self):
@@ -286,10 +325,17 @@ class Jfsphoto (object):
         self.tnm_left.set(str(self.nm_left))
         self.tnm_right.set(str(self.nm_right))  
         self.tnm_step.set(str(self.nm_step))
-
+        ##self.set_laser_nm_scale()
+        ##self.bt4.config(state = tk.NORMAL)
+    
+    # def nm_scale_ok_old(self):
+    #     if ((self.nm_left > 0) & (self.nm_right > 0)):
+    #         return 1
+    #     else:
+    #         return 0
 
     def nm_scale_ok(self):
-        if ((self.nm_left > 0) & (self.nm_right > 0)):
+        if len(self.calib_array_file) > 5 :
             return 1
         else:
             return 0
@@ -300,14 +346,66 @@ class Jfsphoto (object):
         else:
             return 0
 
+    def get_index_nm(self,nm):
+        for i in range(len(self.nmData16)) :
+            if self.nmData16[i] >= nm :
+                return i
+        return 0
+
+    # def set_nm_scale_old(self):
+    #     if (self.nm_scale_ok()):
+    #         self.nmData16 = np.linspace(self.nm_left,self.nm_right,3694)
+    #         self.df['nmscale']=self.nmData16
+    
     def set_nm_scale(self):
-        if (self.nm_scale_ok):
-            self.nmData16 = np.linspace(self.nm_left,self.nm_right,3694)
-            self.df['nmscale']=self.nmData16
+        filename = os.path.join(os.getcwd(),self.calib_array_file)
+        #print(filename)
+        self.df['nmscale']=self.nmData16
+        self.df['nmscale'] = pd.read_csv(filename,index_col=0)
+        self.nmData16 = self.df['nmscale']
+        self.nm_left = self.nmData16[1]
+        self.nm_right = self.nmData16[3693]
+        self.tnm_left.set(str(self.nm_left))
+        self.tnm_right.set(str(self.nm_right))  
+    
 
     def get_nm_scale(self):
          self.set_nm_scale()
          return self.nmData16
+
+    def load_calib_array(self):
+        filename = filedialog.askopenfilename(defaultextension=".csv", title="Open file ")
+        #print(filename)
+        try:
+            test = pd.DataFrame()
+            test['ok'] = self.nmData16
+            test['ok'] = pd.read_csv(filename,index_col=0)
+            sa = pd.isna(test.at[1,'ok'])
+            sb = pd.isna(test.at[3693,'ok'])
+            print(sa,sb)
+            if sa:
+                self.do_msg("Error at start of file | no 0 value?")
+            if sb:
+                self.do_msg("Error at end of file | to short?")
+            if ((sa & sb) == False):
+                #print('ok')
+                self.calib_array_file=os.path.basename(filename)
+                self.fcalib.set(os.path.basename(filename))
+                self.set_nm_scale()
+
+
+        except IOError:
+            messagebox.showerror("By the great otter!","There's a problem loding the file.")
+        
+    
+    def save_calib_array(self):
+        filename = filedialog.asksaveasfilename(defaultextension=".csv", title="Save file as")
+        try: 
+           self.df['nmscale'].to_csv(filename)
+           self.calib_array_file=os.path.basename(filename)
+           self.fcalib.set(os.path.basename(filename))
+        except IOError:
+            messagebox.showerror("By the great otter!","There's a problem saving the file.")
 
     def add_kinetic(self,name):        
         self.df[str(name)]=config.rxData16
@@ -401,10 +499,12 @@ class Jfsphoto (object):
         lis = config.sections()
         if ('main' not in lis):
             config.add_section('main')
-        config.set('main','nm_left',str(self.nm_left))
-        config.set('main','nm_right',str(self.nm_right))
-        config.set('main','nm_step',str(self.nm_step))
-        config.set('main','baseline_limit',str(self.baseline_limit.get()))
+        #config.set('main','nm_left',str(self.nm_left))
+        #config.set('main','nm_right',str(self.nm_right))
+        #config.set('main','nm_step',str(self.nm_step))
+        #config.set('main','baseline_limit',str(self.baseline_limit.get()))
+        if (len(self.calib_array_file)>5):
+            config.set('main','calibfile',self.calib_array_file)
         if ('methods') in lis:
             config.remove_section('methods')
             with open('config.ini','w') as f:
@@ -425,12 +525,15 @@ class Jfsphoto (object):
         config = ConfigParser()
         try:
             config.read('config.ini')
-            self.nm_left =  float(config.get('main','nm_left',fallback='0'))
-            self.tnm_left.set(config.get('main','nm_left',fallback='0'))
-            self.nm_right = float(config.get('main','nm_right',fallback='0'))
-            self.tnm_right.set(config.get('main','nm_right',fallback='0'))
-            self.nm_step = float(config.get('main','nm_step',fallback='0'))
-            self.tnm_step.set(config.get('main','nm_step',fallback='0'))
+
+            #self.nm_left =  float(config.get('main','nm_left',fallback='0'))
+            #self.tnm_left.set(config.get('main','nm_left',fallback='0'))
+            #self.nm_right = float(config.get('main','nm_right',fallback='0'))
+            #self.tnm_right.set(config.get('main','nm_right',fallback='0'))
+            #self.nm_step = float(config.get('main','nm_step',fallback='0'))
+            #self.tnm_step.set(config.get('main','nm_step',fallback='0'))
+            self.calib_array_file = config.get('main','calibfile',fallback='')
+            #print(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),self.calib_array_file))
             self.set_nm_scale()
             self.baseline_limit.set(int(config.get('main','baseline_limit',fallback='20')))
             if 'methods' in config.sections():
@@ -479,9 +582,11 @@ class Jfsphoto (object):
                 self.akt_nm=0
                 self.akt_point=0
             else:
-                self.akt_nm =  event.xdata
-                self.akt_point  = int((self.akt_nm - self.nm_left)*(1/self.nm_step))
-            self.draw_slice()
+                self.akt_nm =  event.xdata                
+                #self.akt_point  = int((self.akt_nm - self.nm_left)*(1/self.nm_step))
+                ##print(self.df.iloc[self.akt_nm][self.df['nmscale']]
+                self.akt_point = self.get_index_nm(self.akt_nm)
+                self.draw_slice()
 
         def on_key_press(event):
            print("you pressed {}".format(event.key))
@@ -689,14 +794,16 @@ class Jfsphoto (object):
                     self.df.plot(x= 'nmscale',y = xx+'_abs', zs= int(xx), linewidth=0.6,ax=self.ax1)
                 else:
                     self.df.plot(x = 'nmscale',y = xx+'_abs', linewidth=0.6,ax=self.ax1)
-            self.ax1.set_xlim([self.nm_left+self.left*self.nm_step, self.nm_left+self.right*self.nm_step])
+            #self.ax1.set_xlim([self.nm_left+self.left*self.nm_step, self.nm_left+self.right*self.nm_step])
+            self.ax1.set_xlim(self.nmData16[self.left],self.nmData16[self.right])
         elif self.ok.get()==4:  
             for xx in self.col_list:
                 if self.proji3d==True:
                     self.df.plot(x= 'nmscale',y = xx+'_trans', zs= int(xx), linewidth=0.6,ax=self.ax1)
                 else:        
                     self.df.plot(x = 'nmscale',y = xx+'_trans',linewidth=0.6,ax=self.ax1)
-            self.ax1.set_xlim([self.nm_left+self.left*self.nm_step, self.nm_left+self.right*self.nm_step])
+            #self.ax1.set_xlim([self.nm_left+self.left*self.nm_step, self.nm_left+self.right*self.nm_step])
+            self.ax1.set_xlim(self.nmData16[self.left],self.nmData16[self.right])
         else:
             t = arange(0.0, 3.0, 0.01)
             s = sin(2*pi*t)
