@@ -46,7 +46,7 @@ def center_window(size, window) :
 
 def get_icon_image(xx):
     directory_path = os.path.dirname(__file__)
-    file_path = os.path.join(directory_path, 'images\\',xx)
+    file_path = os.path.join(directory_path, 'images',xx)
     image =Image.open(file_path)
     photo = ImageTk.PhotoImage(image) 
     return photo
@@ -84,7 +84,7 @@ def jfshelpme(win,helpfor):
         text.insert(tk.END, "1) First take two measurements with your device und save the files with the [Save] button under a comprehensible name (e.g. 405nm.data) \n")
         text.insert(tk.END, "2) Open the calibration dialog and insert the wavelength in [nm] and afterwards select the respective file. <first peak> stands for the lower and <second peak> for the higher wavelength.\n")
         text.insert(tk.END, "3) Now you can use the [Calibrate] button to calibrate the instrument and [Save Calibarray] will the store the file.\n")
-        text.insert(tk.END,"\nAfter laoding a calibration-file you can switch the [nm] scale on and use other option:\n")
+        text.insert(tk.END,"\nAfter loading a calibration-file you can switch the [nm] scale on and use other option:\n")
         text.insert(tk.END,'\nMethods\n','h2')
         text.insert(tk.END,"\nAs a Photometer to messure the transmittance or absorbance depending on the concentration of colored compounds.\n\n")
         text.image_create(tk.END,image=photoImg2)
@@ -102,11 +102,13 @@ def jfshelpme(win,helpfor):
     elif (helpfor == 1): #do you need help with the device?
         text.image_create(tk.END,image=photoImg)
         text.insert(tk.END, " Calibration\n", 'h1')
-        text.insert(tk.END, "\nTo calibrate the instrument we need two laserpointer of different colors und known wavelength.\nFor example a blue [405nm] and red [650nm] one.\n")
+        text.insert(tk.END, "\nThe progarm requires a cvs-file with the values [pixelnr,nm] to calibrate the instrument. With the [Load Calibarray] one can select the file.\n")
+        text.insert(tk.END,"The [Save Config]  saves the configuration for the next start of the program.\n")
+        text.insert(tk.END, "\nTo create a calibration-file for the instrument we need two laserpointer of different colors und known wavelength.\nFor example a blue [405nm] and red [650nm] one.\n")
         text.insert(tk.END, "1) First take two measurements with your device und save the files with the [Save] button under a comprehensible name (e.g. 405nm.data) \n")
         text.insert(tk.END, "2) Open the calibration dialog and insert the wavelength in [nm] and afterwards select the respective file. <first peak> stands for the lower and <second peak> for the higher wavelength.\n")
-        text.insert(tk.END, "3) Now you can use the [Calibrate] button to calibrate the instrument and [Save Config] will the store the configuration.\n")
-        text.insert(tk.END,"\nAfter this procedure you can switch the [nm] scale on and use other option:\n")
+        text.insert(tk.END, "3) Now you can use the [Calibrate] button to calibrate the instrument and [Save Calibarray] will the store the file.\n")
+        text.insert(tk.END,"\nAfter loading a calibration-file you can switch the [nm] scale on and use other option:\n")
         text.insert(tk.END,'\nMethods\n','h2')
         text.insert(tk.END,"\nAs a photometer to messure the transmittance or absorbance depending on the concentration of colored compounds.\n\n")
         text.image_create(tk.END,image=photoImg2)
