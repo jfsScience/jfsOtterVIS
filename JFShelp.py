@@ -46,8 +46,8 @@ def center_window(size, window) :
 
 def get_icon_image(xx):
     directory_path = os.path.dirname(__file__)
-    file_path = os.path.join(directory_path, 'images\\')
-    image =Image.open(file_path+xx)
+    file_path = os.path.join(directory_path, 'images',xx)
+    image =Image.open(file_path)
     photo = ImageTk.PhotoImage(image) 
     return photo
 
