@@ -68,7 +68,7 @@ def savefile(self):
             writeCSV.writerow(["#Data","from","the","TCD1304","linear","CCD"])
             writeCSV.writerow(["#column","1","=","pixelnumber",",","column","2","=","pixelvalue"])
             writeCSV.writerow(["#Pixel","1-32","and","3679-3694","and","are","dummy","pixels"])
-            writeCSV.writerow(["#SH-period:",str(config.SHsent),"","","","ICG-period:",str(config.ICGsent),"","","","Integration","time:",str(config.SHsent/2),"µs"])
+            writeCSV.writerow(["#SH-period:",str(config.SHsent),"","","","ICG-period:",str(config.ICGsent),"","","","Integration","time:",str(config.SHsent/2),"mys"])
             for i in range (3694):
                 writeCSV.writerow([str(i+1),str(config.rxData16[i])])
 

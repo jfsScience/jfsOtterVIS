@@ -166,8 +166,6 @@ class Jfsphoto (object):
     def do_calibrate(self):
         win = tk.Toplevel()
         win.geometry("500x300+200+200")
-        #center_window([500,300],None)
-        #self.lab1 = tk.Label(win, text='Please enter filenames and nm of the peaks').grid(row=0,column=0,columnspan=6)
         lf1 = tk.LabelFrame(win,text='Lasercalibration: Please enter filenames and nm of the peaks')
         lf1.grid(column=0,row=0,columnspan=8,padx=10,sticky='w')
         ########## first peak
@@ -193,9 +191,9 @@ class Jfsphoto (object):
         self.lnm2 = tk.Label(lf1,text =" nm by index ").grid(row=2,column=4)
         self.lm2i = tk.Label(lf1,textvariable=self.tnm2i).grid(row=2,column=5)
         ########### calibration    
-        self.tnm_left.set(str(self.nm_left))
-        self.tnm_right.set(str(self.nm_right))
-        self.tnm_step.set(str(self.nm_step))
+        self.tnm_left.set(str(round(self.nm_left,2)))
+        self.tnm_right.set(str(round(self.nm_right,2)))
+        self.tnm_step.set(str(round(self.nm_step,2)))
         self.lab4 = tk.Label(lf1,text="left border [nm]").grid(row=3,column=0,sticky='w')
         self.lab5 = tk.Label(lf1,textvariable=self.tnm_left).grid(row=3,column=1)
         self.lab6 = tk.Label(lf1,text="right border [nm]").grid(row=3,column=2)
@@ -296,11 +294,9 @@ class Jfsphoto (object):
                             doIt = False
                     self.baseData16[i] = 0
                 else:
-                    ## 300 should be in the ini file job!
-                    if (base[i] > 300):
+                    if (base[i] >300):
                         left = False
                     self.baseData16[i] = base[i]*1.0
-            #print(self.baseline_start,"  ",self.baseline_end)
             self.df['baseline']=self.baseData16
             return 1
         
@@ -325,15 +321,8 @@ class Jfsphoto (object):
         self.tnm_left.set(str(self.nm_left))
         self.tnm_right.set(str(self.nm_right))  
         self.tnm_step.set(str(self.nm_step))
-        ##self.set_laser_nm_scale()
-        ##self.bt4.config(state = tk.NORMAL)
-    
-    # def nm_scale_ok_old(self):
-    #     if ((self.nm_left > 0) & (self.nm_right > 0)):
-    #         return 1
-    #     else:
-    #         return 0
-
+        self.bt4.config(state = tk.NORMAL)
+ 
     def nm_scale_ok(self):
         if len(self.calib_array_file) > 5 :
             return 1
@@ -352,21 +341,16 @@ class Jfsphoto (object):
                 return i
         return 0
 
-    # def set_nm_scale_old(self):
-    #     if (self.nm_scale_ok()):
-    #         self.nmData16 = np.linspace(self.nm_left,self.nm_right,3694)
-    #         self.df['nmscale']=self.nmData16
-    
+ 
     def set_nm_scale(self):
         filename = os.path.join(os.getcwd(),self.calib_array_file)
-        #print(filename)
         self.df['nmscale']=self.nmData16
         self.df['nmscale'] = pd.read_csv(filename,index_col=0)
         self.nmData16 = self.df['nmscale']
         self.nm_left = self.nmData16[1]
         self.nm_right = self.nmData16[3693]
-        self.tnm_left.set(str(self.nm_left))
-        self.tnm_right.set(str(self.nm_right))  
+        self.tnm_left.set(str(round(self.nm_left,2)))
+        self.tnm_right.set(str(round(self.nm_right,2)))  
     
 
     def get_nm_scale(self):
@@ -375,20 +359,17 @@ class Jfsphoto (object):
 
     def load_calib_array(self):
         filename = filedialog.askopenfilename(defaultextension=".csv", title="Open file ")
-        #print(filename)
         try:
             test = pd.DataFrame()
             test['ok'] = self.nmData16
             test['ok'] = pd.read_csv(filename,index_col=0)
             sa = pd.isna(test.at[1,'ok'])
             sb = pd.isna(test.at[3693,'ok'])
-            print(sa,sb)
             if sa:
                 self.do_msg("Error at start of file | no 0 value?")
             if sb:
                 self.do_msg("Error at end of file | to short?")
             if ((sa & sb) == False):
-                #print('ok')
                 self.calib_array_file=os.path.basename(filename)
                 self.fcalib.set(os.path.basename(filename))
                 self.set_nm_scale()
@@ -499,10 +480,6 @@ class Jfsphoto (object):
         lis = config.sections()
         if ('main' not in lis):
             config.add_section('main')
-        #config.set('main','nm_left',str(self.nm_left))
-        #config.set('main','nm_right',str(self.nm_right))
-        #config.set('main','nm_step',str(self.nm_step))
-        #config.set('main','baseline_limit',str(self.baseline_limit.get()))
         if (len(self.calib_array_file)>5):
             config.set('main','calibfile',self.calib_array_file)
         if ('methods') in lis:
@@ -525,21 +502,12 @@ class Jfsphoto (object):
         config = ConfigParser()
         try:
             config.read('config.ini')
-
-            #self.nm_left =  float(config.get('main','nm_left',fallback='0'))
-            #self.tnm_left.set(config.get('main','nm_left',fallback='0'))
-            #self.nm_right = float(config.get('main','nm_right',fallback='0'))
-            #self.tnm_right.set(config.get('main','nm_right',fallback='0'))
-            #self.nm_step = float(config.get('main','nm_step',fallback='0'))
-            #self.tnm_step.set(config.get('main','nm_step',fallback='0'))
             self.calib_array_file = config.get('main','calibfile',fallback='')
-            #print(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),self.calib_array_file))
             self.set_nm_scale()
             self.baseline_limit.set(int(config.get('main','baseline_limit',fallback='20')))
             if 'methods' in config.sections():
                 for i in config['methods']:
                     s = config.get('methods',i)
-                    #print(i,s)
                     self.methods.append(Methods(i,s))
         except IOError:
             print("By the great otter!","No config.ini file")
@@ -551,8 +519,7 @@ class Jfsphoto (object):
             x=[]
             y=[]        
             for xx in self.col_list:
-                x.append(int(xx))
-                
+                x.append(int(xx))               
                 if self.ok.get() < 3:
                     yy = self.df.iloc[self.akt_point][xx]
                 elif self.ok.get()==3:
@@ -576,15 +543,11 @@ class Jfsphoto (object):
     def do_math(self,panel):
      
         def onclick(event):           
-            #print('%s click: button=%d, xdata=%f, ydata=%f' %('double' if event.dblclick else 'single', event.button,
-            #        event.xdata, event.ydata))
             if event.button == 3:
                 self.akt_nm=0
                 self.akt_point=0
             else:
                 self.akt_nm =  event.xdata                
-                #self.akt_point  = int((self.akt_nm - self.nm_left)*(1/self.nm_step))
-                ##print(self.df.iloc[self.akt_nm][self.df['nmscale']]
                 self.akt_point = self.get_index_nm(self.akt_nm)
                 self.draw_slice()
 
@@ -599,22 +562,18 @@ class Jfsphoto (object):
         def toggle():
             if self.kbtn.config('relief')[-1] == 'sunken':
                 self.kbtn.config(relief='raised')
-                #self.do_2dprint()
                 self.proji3d=False
             else:
                 self.kbtn.config(relief='sunken') 
-                #self.do_3dprint()
                 self.proji3d=True
             self.look()
 
         def togglelog():
             if self.kbtm.config('relief')[-1] == 'sunken':
                 self.kbtm.config(relief='raised')
-                #self.do_2dprint()
                 self.log=True
             else:
                 self.kbtm.config(relief='sunken') 
-                #self.do_3dprint()
                 self.log=False
             self.look()
 
@@ -679,7 +638,6 @@ class Jfsphoto (object):
 
     def clear_selected(self):
         self.listbox.selection_clear(0,'end')
-        #self.get_kin_list()
         self.col_list = list(self.listbox.get(0,tk.END))
         self.look()
 
@@ -743,7 +701,6 @@ class Jfsphoto (object):
             if b[i]==0:
                 c[i] = 1
             else:
-                #c[i] = y[i]/b[i]
                 c[i] = np.log10(b[i]/y[i])
         self.df[xx+'_abs'] = c
 
@@ -756,12 +713,7 @@ class Jfsphoto (object):
                 c[i] = 1
             else:
                 c[i] = y[i]/b[i]
-                #c[i] = np.log10(b[i]/y[i])
         self.df[xx+'_trans'] = c
-
-        # self.ax1 = self.fig.gca(projection='3d')
-        # for xx in self.col_list:
-        #     self.df.plot(y = 'nmscale',x = xx, zs= int(xx), linewidth=0.6,ax=self.ax1)
 
 
     def look(self):
@@ -769,7 +721,6 @@ class Jfsphoto (object):
         self.ax1.clear()
         if self.proji3d==True:
             self.ax1 = self.fig.add_subplot(2,3,(1,5),projection='3d')
-            #self.ax1 = self.fig.gca(projection='3d')
         else:
              self.ax1 = self.fig.add_subplot(2,3,(1,5))
         if self.ok.get()==1:
@@ -777,7 +728,6 @@ class Jfsphoto (object):
                 if self.proji3d==True:
                     self.ax1.set_ylabel('points')
                     self.df.plot(x= 'nmscale',y = xx, zs= int(xx), linewidth=0.6,ax=self.ax1)
-
                 else:
                     self.df.plot(x = 'nmscale',y = xx, linewidth=0.6,ax=self.ax1)
         elif self.ok.get()==2:
@@ -794,7 +744,6 @@ class Jfsphoto (object):
                     self.df.plot(x= 'nmscale',y = xx+'_abs', zs= int(xx), linewidth=0.6,ax=self.ax1)
                 else:
                     self.df.plot(x = 'nmscale',y = xx+'_abs', linewidth=0.6,ax=self.ax1)
-            #self.ax1.set_xlim([self.nm_left+self.left*self.nm_step, self.nm_left+self.right*self.nm_step])
             self.ax1.set_xlim(self.nmData16[self.left],self.nmData16[self.right])
         elif self.ok.get()==4:  
             for xx in self.col_list:
@@ -802,7 +751,6 @@ class Jfsphoto (object):
                     self.df.plot(x= 'nmscale',y = xx+'_trans', zs= int(xx), linewidth=0.6,ax=self.ax1)
                 else:        
                     self.df.plot(x = 'nmscale',y = xx+'_trans',linewidth=0.6,ax=self.ax1)
-            #self.ax1.set_xlim([self.nm_left+self.left*self.nm_step, self.nm_left+self.right*self.nm_step])
             self.ax1.set_xlim(self.nmData16[self.left],self.nmData16[self.right])
         else:
             t = arange(0.0, 3.0, 0.01)
@@ -865,11 +813,6 @@ class Jfsphoto (object):
             return np.log10(b/(d-w))
 
         def waitfor(x,name,val):
-            # self.df['m1'] = config.rxData16
-            # d = self.df.iloc[p]['darkline']
-            # b = self.df.iloc[p]['baseline']
-            # w = self.df.iloc[p]["m1"]
-            # val[3]= np.log10(b/(d-w))
             val[3] = get_messurement(name)
             val[4]= panel.SHvalue.get()
             val[5]= panel.ICGvalue.get()
@@ -884,15 +827,10 @@ class Jfsphoto (object):
                 val= tree.item(name)["values"]
                 # get parent for nm 
                 x = name.split(' ')
-                #nm = tree.item(x[0])["values"][1]
-                ## nm -> point
-                #p = int((nm - self.nm_left)*(1/self.nm_step))
-                #print(f'nm {nm} point {p}')
                 s1 = str(val[2])+' '+tree.item(x[0])["values"][2]
                 s = 'Is a Cuvet for '+x[0]+' in concentration\n of '+s1+' in the photometer ? '
                 if  tk.messagebox.askokcancel(title='Messurement', message=s):
                     panel.bcollect.invoke()
-                    #panel.after(get_duration(),waitfor(x,name,val,p))
                     panel.after(get_duration(),waitfor(x,name,val))
 
         def cb2(event):
@@ -914,7 +852,6 @@ class Jfsphoto (object):
             ax1.text(x[0], 1, f'A vs {tree.item(name)["values"][2]}',fontdict=font)
             ax1.text(x[0], 0.9, f'y = {round(model[0],3)}x + {round(model[1],3)}',fontdict=font)
             ax1.text(x[0], 0.8, f'R ={round(r2_score(y,predict(x)),3)}',fontdict=font)
-            #ax1.text(x[0], 0.9, r'Omega: {s} $\Omega$', {'color': 'b', 'fontsize': 8})
             canvas.draw()
 
         win = tk.Toplevel() 
@@ -1004,7 +941,6 @@ class Jfsphoto (object):
                 panel.jfsbase_check.config(state=tk.NORMAL)
 
         def do_zero_messurement():
-            #print(l6['text'])
             if l6['text'].find('Select')  >= 0:
                 tk.messagebox.showerror(title='Sorry',message='Select Method first')
             else:
@@ -1034,8 +970,6 @@ class Jfsphoto (object):
                     y.append(float(tree.item(child)["values"][3]))
                 model = np.polyfit(x,y,1)
                 a = get_messurement(l6['text'])
-                #print(a)
-                #a = model[0]* c +model[1]
                 c = (a - model[1])/model[0]               
                 l8.config(text=str(round(c,3))+' '+tree.item(l6['text'])['values'][2])
 
