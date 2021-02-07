@@ -336,9 +336,16 @@ class Jfsphoto (object):
             return 0
 
     def get_index_nm(self,nm):
-        for i in range(len(self.nmData16)) :
-            if self.nmData16[i] >= nm :
-                return i
+        l = self.nmData16[1]
+        r = self.nmData16[3693]
+        if (l < r):
+            for i in range(len(self.nmData16)) :
+                if self.nmData16[i] >= nm :
+                    return i
+        else:
+            for i in range(len(self.nmData16)) :
+                if self.nmData16[i] <= nm :
+                    return i
         return 0
 
  
@@ -805,7 +812,9 @@ class Jfsphoto (object):
             x = name.split(' ')
             nm = tree.item(x[0])["values"][1]
             ## nm -> point
-            p = int((nm - self.nm_left)*(1/self.nm_step))
+            #p = int((nm - self.nm_left)*(1/self.nm_step))
+            p = self.get_index_nm(nm)
+
             self.df['m1'] = config.rxData16
             d = self.df.iloc[p]['darkline']
             b = self.df.iloc[p]['baseline']
@@ -828,7 +837,7 @@ class Jfsphoto (object):
                 # get parent for nm 
                 x = name.split(' ')
                 s1 = str(val[2])+' '+tree.item(x[0])["values"][2]
-                s = 'Is a Cuvet for '+x[0]+' in concentration\n of '+s1+' in the photometer ? '
+                s = 'Is a Cuvet for '+x[0]+' in concentration\n of '+s1+' already in the photometer ? '
                 if  tk.messagebox.askokcancel(title='Messurement', message=s):
                     panel.bcollect.invoke()
                     panel.after(get_duration(),waitfor(x,name,val))
