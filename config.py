@@ -2,7 +2,7 @@ import numpy as np
 
 
 #serial definitions
-port = 'COM3' #'/dev/ttyACM0'
+port = 'COM7' #'/dev/ttyACM0'
 baudrate = 115200
 
 #Data as the program handles
@@ -31,5 +31,3 @@ datainvert = 1
 offset = 0
 balanced = 0
 
-#Photometer status Photometer off
-photometer = 0

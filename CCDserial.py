@@ -44,6 +44,38 @@ import time
 # byte[7-10]: The 4 bytes constituting the 32-bit int holding the ICG-period
 # byte[11]: Continuous flag: 0 equals one acquisition, 1 equals continuous mode
 # byte[12]: The number of integrations to average
+
+## by jf used by  photometer messurements
+def rxtx2():
+        ser = serial.Serial(config.port, config.baudrate)
+        #Transmit key 'ER'    
+        config.txfull[0] = 69
+        config.txfull[1] = 82
+        #split 32-bit integers to be sent into 8-bit data
+        config.txfull[2] = (config.SHperiod >> 24) & 0xff
+        config.txfull[3] = (config.SHperiod >> 16) & 0xff
+        config.txfull[4] = (config.SHperiod >> 8) & 0xff
+        config.txfull[5] = config.SHperiod & 0xff
+        config.txfull[6] = (config.ICGperiod >> 24) & 0xff
+        config.txfull[7] = (config.ICGperiod >> 16) & 0xff
+        config.txfull[8] = (config.ICGperiod >> 8) & 0xff
+        config.txfull[9] = config.ICGperiod & 0xff
+        #averages to perfom
+        config.txfull[10] = config.AVGn[0] 
+        config.txfull[11] = config.AVGn[1]
+
+        #transmit everything at once (the USB-firmware does not work if all bytes are not transmitted in one go)
+        ser.write(config.txfull)
+            
+        #wait for the firmware to return data
+        config.rxData8 = ser.read(7388)
+
+        #close serial port
+        ser.close()
+        for rxi in range(3694):
+                config.rxData16[rxi] = (config.rxData8[2*rxi+1] << 8) + config.rxData8[2*rxi]
+
+
 def rxtx(panel, SerQueue, progress_var):
     
     if (config.AVGn[0] == 0):

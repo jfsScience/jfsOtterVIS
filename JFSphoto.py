@@ -50,6 +50,7 @@ import CCDpanelsetup as panel
 from sklearn.metrics import r2_score
 from JFShelp import *
 import os
+import CCDserial as ccdser
 ####################################### object
 class Messurement(object):
     ### nr -> na
@@ -782,22 +783,7 @@ class Jfsphoto (object):
                 tk.messagebox.showerror('ToDos',s+s1)
         return ok
 
-    def do_methods(self,panel):
-
-
-        def get_duration():
-            if panel.tint.get().split()[4]=='ms':
-                f = float(panel.tint.get().split()[3])
-            elif panel.tint.get().split()[4] == 's':
-                f = float(panel.tint.get().split()[3])*1000
-            elif panel.tint.get().split()[4] == 'min':
-                f = float(panel.tint.get().split()[3]) * 60000
-            x = int(panel.AVGscale.get())*f
-            if x < 1000:
-                x = 1000
-            return x
-
-               
+    def do_methods(self,panel):             
         
         font = {'family': 'serif',
         'color':  'darkred',
@@ -806,32 +792,19 @@ class Jfsphoto (object):
         }
 
         def get_messurement(name):
-            # get selected and save values
-            #name = tree. val=selection()[0]
-            # get parent for nm 
             x = name.split(' ')
             nm = tree.item(x[0])["values"][1]
             ## nm -> point
-            #p = int((nm - self.nm_left)*(1/self.nm_step))
             p = self.get_index_nm(nm)
-
             self.df['m1'] = config.rxData16
             d = self.df.iloc[p]['darkline']
             b = self.df.iloc[p]['baseline']
             w = self.df.iloc[p]["m1"]
             return np.log10(b/(d-w))
 
-        def waitfor(x,name,val):
-            val[3] = get_messurement(name)
-            val[4]= panel.SHvalue.get()
-            val[5]= panel.ICGvalue.get()
-            tree.item(x, text=name,values=val)
-
         
-        def cb(event):
+        def mes_line(event):
             if self.check_requirement() == True:
-                panel.bcollect.invoke()               
-                # get selected and save values
                 name = tree.selection()[0]
                 val= tree.item(name)["values"]
                 # get parent for nm 
@@ -839,10 +812,13 @@ class Jfsphoto (object):
                 s1 = str(val[2])+' '+tree.item(x[0])["values"][2]
                 s = 'Is a Cuvet for '+x[0]+' in concentration\n of '+s1+' already in the photometer ? '
                 if  tk.messagebox.askokcancel(title='Messurement', message=s):
-                    panel.bcollect.invoke()
-                    panel.after(get_duration(),waitfor(x,name,val))
-
-        def cb2(event):
+                    ccdser.rxtx2()
+                    val[3] = get_messurement(name)
+                    val[4]= panel.SHvalue.get()
+                    val[5]= panel.ICGvalue.get()
+                    tree.item(x, text=name,values=val)
+                  
+        def shw_dia(event):
             y = []
             x = []
             name = tree.selection()
@@ -867,8 +843,8 @@ class Jfsphoto (object):
         lf = tk.LabelFrame(win,text='Methods')
         lf.grid(column=0,row=0,sticky='w')
         tree = ttk.Treeview(lf)
-        tree.tag_bind('cb','<<TreeviewSelect>>',cb)
-        tree.tag_bind('cb2','<<TreeviewSelect>>',cb2)
+        tree.tag_bind('mes_line','<<TreeviewSelect>>',mes_line)
+        tree.tag_bind('shw_dia','<<TreeviewSelect>>',shw_dia)
         tree.grid(column=0,row=0)
         tree["columns"]=('id','nm','konz','absorbanz','interval','last')
         tree.column("#0",width=100,minwidth=100,stretch=tk.NO)
@@ -901,9 +877,9 @@ class Jfsphoto (object):
 
         def load_tree():
             for a in self.methods:
-                tree.insert("",'end',a.name,text=a.name,values=(a.id,a.nm,a.units,a.absorbanz,a.step,a.final),tags=('cb2'))
+                tree.insert("",'end',a.name,text=a.name,values=(a.id,a.nm,a.units,a.absorbanz,a.step,a.final),tags=('shw_dia'))
                 for b in a.messures:
-                    tree.insert(a.name,'end',b.name,text=b.name,values=(b.id,'',b.conc,b.absorbanz,b.SH,b.ICG),tags=('cb'))
+                    tree.insert(a.name,'end',b.name,text=b.name,values=(b.id,'',b.conc,b.absorbanz,b.SH,b.ICG),tags=('mes_line'))
         
         def save_tree():
             for child in tree.get_children():
@@ -939,12 +915,12 @@ class Jfsphoto (object):
                         self.methods.remove(p)
 
         def waitfor_darkline():
-            panel.bcollect.invoke()
+            ccdser.rxtx2()
             if (self.do_save_darkline(config.rxData16)==1):
                         panel.jfsdark_check.config(state=tk.NORMAL)
 
         def waitfor_baseline():
-            panel.bcollect.invoke()
+            ccdser.rxtx2()
             base = self.darkData16-config.rxData16
             if (self.do_save_baseline(base)==1):
                 panel.jfsbase_check.config(state=tk.NORMAL)
@@ -960,18 +936,13 @@ class Jfsphoto (object):
                 panel.SHvalue.set(sh)
                 panel.ICGvalue.set(icg)
                 if  tk.messagebox.askokcancel(title='Darkline', message='Insert the empty Cuvet\nturn lightsource [off]'):
-                    panel.bcollect.invoke()
-                    panel.after(1000,waitfor_darkline)  
-                    ## messure Darkline
+                    waitfor_darkline()
                     if  tk.messagebox.askokcancel(title='Baseline', message= 'Leave the empty Cuvet\nturn lightsource [on]'):
-                        panel.bcollect.invoke()
-                        panel.after(1000,waitfor_baseline)
-                       
+                        waitfor_baseline()                   
                         
         def do_messurement():
-            panel.bcollect.invoke()
             if  tk.messagebox.askokcancel(title='Messurements', message= 'Sample Cuvet inside \n lightsource [on]'):
-                panel.bcollect.invoke()
+                ccdser.rxtx2()
                 x=[]
                 y=[]
                 for child in tree.get_children(l6['text']):
