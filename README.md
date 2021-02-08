@@ -6,6 +6,9 @@ In order to use the software you should have already build Rosssel's spectrophom
 * the calibration of the instrument in nm
 * the use of the spectrophometer as a photometer
 * the survey of simple kinetics
+
+##  Branches
+* CalibrationByArray: Now its possible to calibrate the instrument by an csv-file for example non_linear_calibarray_HgCd.csv
 ## Installation
 Recomendation: it is best to run the python program under the anaconda framework.
 * Install anaconda [optional]
