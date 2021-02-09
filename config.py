@@ -31,3 +31,5 @@ datainvert = 1
 offset = 0
 balanced = 0
 
+#jfs
+photometer = 0
